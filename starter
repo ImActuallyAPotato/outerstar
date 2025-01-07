@@ -1,0 +1,34 @@
+from flask import Flask, request, Response
+import requests
+
+app = Flask(__name__)
+
+# Proxy route
+@app.route('/<path:url>', methods=['GET', 'POST', 'PUT', 'DELETE'])
+def proxy(url):
+    method = request.method
+    target_url = f'http://{url}'
+
+    # Forwarding GET request
+    if method == 'GET':
+        resp = requests.get(target_url, params=request.args)
+    
+    # Forwarding POST request
+    elif method == 'POST':
+        resp = requests.post(target_url, data=request.data, headers=request.headers)
+    
+    # Forwarding PUT request
+    elif method == 'PUT':
+        resp = requests.put(target_url, data=request.data, headers=request.headers)
+    
+    # Forwarding DELETE request
+    elif method == 'DELETE':
+        resp = requests.delete(target_url, headers=request.headers)
+
+    # Return response with the status code, headers, and content
+    response = Response(resp.content, resp.status_code, resp.headers.items())
+    return response
+
+if __name__ == '__main__':
+    app.run(debug=True, host='0.0.0.0', port=5000)
+
